@@ -15,23 +15,24 @@ const messagesRouter = require('./routes/messages');
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = process.env.CLIENT_ORIGIN 
-  ? process.env.CLIENT_ORIGIN.split(',').map(s => s.trim()) 
-  : '*';
-
 const corsOptions = {
-  origin: allowedOrigins === '*' ? '*' : allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  origin: (origin, callback) => {
+    // Dynamically reflect request origin to properly support credentials: true across Vercel and localhost
+    callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-token', 'x-user-name'],
   credentials: true
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Initialize Socket.io
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins === '*' ? '*' : allowedOrigins,
+    origin: (origin, callback) => callback(null, true),
     methods: ['GET', 'POST'],
     credentials: true
   }
