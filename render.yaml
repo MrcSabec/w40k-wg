@@ -1,0 +1,24 @@
+# Render Blueprint Specification for Wrath & Glory VTT Server
+# Learn more: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: warhammer-vtt-backend
+    env: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node src/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: CLIENT_ORIGIN
+        value: "*"
+      - key: DATA_DIR
+        value: "./data"
+    # To enable SQLite persistence across service restarts on Render Paid Tier:
+    # disk:
+    #   name: vtt-database
+    #   mountPath: /var/data
+    #   sizeGB: 1

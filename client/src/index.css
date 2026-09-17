@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+/* Custom Grimdark Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c0e12;
+  border-left: 1px solid #1e2330;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272d3e;
+  border-radius: 2px;
+  border: 1px solid #cba33833;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #cba33888;
+}
+
+/* Atmospheric Scanline effect for Dataslate terminals */
+.dataslate-screen {
+  position: relative;
+  background: radial-gradient(circle at 50% 50%, #161a24 0%, #0c0e12 100%);
+}
+
+.dataslate-screen::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Metallic Gothic Borders */
+.gothic-panel {
+  border: 1px solid #384056;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.7);
+  position: relative;
+}
+
+.gothic-panel-gold {
+  border: 1px solid rgba(203, 163, 56, 0.4);
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.8), 0 0 15px -3px rgba(203, 163, 56, 0.15);
+}
+
+.gothic-corners::before,
+.gothic-corners::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #cba338;
+  pointer-events: none;
+}
+
+.gothic-corners::before {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.gothic-corners::after {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Pulsing Wrath & Glory glow animations */
+@keyframes wrathPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.8); }
+}
+
+.pulse-wrath {
+  animation: wrathPulse 2s infinite ease-in-out;
+}
+
+@keyframes gloryPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(203, 163, 56, 0.4); }
+  50% { box-shadow: 0 0 30px rgba(203, 163, 56, 0.85); }
+}
+
+.pulse-glory {
+  animation: gloryPulse 2s infinite ease-in-out;
+}

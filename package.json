@@ -1,0 +1,19 @@
+{
+  "name": "warhammer-40k-wrath-and-glory-vtt",
+  "version": "1.0.0",
+  "description": "VTT & Gerenciador de Campanhas e Fichas para Warhammer 40,000: Wrath & Glory (2ª Edição)",
+  "scripts": {
+    "server": "node --watch server/src/index.js",
+    "client": "npm --prefix client run dev",
+    "install:all": "npm --prefix server install && npm --prefix client install"
+  },
+  "keywords": [
+    "warhammer-40k",
+    "wrath-and-glory",
+    "vtt",
+    "rpg",
+    "grimdark"
+  ],
+  "author": "",
+  "license": "MIT"
+}

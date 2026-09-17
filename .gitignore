@@ -1,0 +1,60 @@
+# ==========================================
+# Warhammer 40k: Wrath & Glory VTT - .gitignore
+# ==========================================
+
+# Dependencies
+node_modules/
+*/node_modules/
+package-lock.json
+!client/package.json
+!server/package.json
+
+# Build Outputs & Bundles
+dist/
+client/dist/
+build/
+.vite/
+*/dist/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.env
+client/.env
+server/.env
+!.env.example
+!client/.env.example
+!server/.env.example
+
+# SQLite Database & Storage (Prevent committing local database)
+data/
+server/data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+wrath_and_glory.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE, OS & Agent Artifacts
+.DS_Store
+Thumbs.db
+.gemini/
+.obsidian/
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+
+# Large Reference Assets & Rulebook PDFs (Keep repo lightweight)
+*.pdf
+scratch/
