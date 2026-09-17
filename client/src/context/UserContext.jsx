@@ -30,6 +30,31 @@ export function UserProvider({ children }) {
   const [user, setUser] = useState(getSavedUser);
   const [loading, setLoading] = useState(Boolean(getSavedUser()));
 
+async function parseResponseSafe(res) {
+  const text = await res.text();
+  if (!text || !text.trim()) {
+    if (res.status === 405) {
+      throw new Error(
+        'A requisição atingiu a Vercel em vez do seu back-end (HTTP 405). ' +
+        'Por favor, defina a URL do seu servidor no Render no botão "Configurar Servidor" abaixo.'
+      );
+    }
+    return {};
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
+      throw new Error(
+        'O front-end recebeu uma página HTML em vez de JSON. ' +
+        'Certifique-se de que a URL do Render está correta e que o servidor está rodando (Online).'
+      );
+    }
+    throw new Error(`Resposta inválida do servidor (HTTP ${res.status}): ${text.slice(0, 120)}`);
+  }
+}
+
   // Verify session on mount with backend if we had a saved user
   useEffect(() => {
     const checkSession = async () => {
@@ -49,7 +74,7 @@ export function UserProvider({ children }) {
         });
 
         if (res.ok) {
-          const freshData = await res.json();
+          const freshData = await parseResponseSafe(res);
           setUser(freshData);
           localStorage.setItem('wg_user_data', JSON.stringify(freshData));
           localStorage.setItem('wg_auth_token', freshData.token);
@@ -74,15 +99,20 @@ export function UserProvider({ children }) {
 
   // Hybrid Login & Auto-Registration
   const login = async (username, password) => {
-    const res = await fetch(apiUrl('/api/users/auth'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
+    let res;
+    try {
+      res = await fetch(apiUrl('/api/users/auth'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+    } catch (networkErr) {
+      throw new Error(`Não foi possível conectar ao servidor (${apiUrl('/')}): ${networkErr.message}. O servidor no Render pode estar iniciando (aguarde cerca de 30-50 segundos no plano gratuito).`);
+    }
 
-    const data = await res.json();
+    const data = await parseResponseSafe(res);
     if (!res.ok) {
-      throw new Error(data.error || 'Erro ao realizar login.');
+      throw new Error(data.error || `Erro ${res.status}: ${res.statusText || 'Falha ao autenticar'}`);
     }
 
     // Persist session

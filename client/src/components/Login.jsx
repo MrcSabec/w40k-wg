@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useUser } from '../context/UserContext';
-import { Skull, KeyRound, User, Lock, AlertTriangle, ArrowRight, ShieldCheck, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { getBackendUrl, setBackendUrl, isMissingBackendUrl } from '../config';
+import { Skull, KeyRound, User, Lock, AlertTriangle, ArrowRight, ShieldCheck, Sparkles, Eye, EyeOff, Server, Settings, Check } from 'lucide-react';
 
 export default function Login() {
   const { login } = useUser();
@@ -10,6 +11,28 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successInfo, setSuccessInfo] = useState('');
+
+  // Backend server URL management
+  const [currentBackend, setCurrentBackend] = useState(getBackendUrl);
+  const [serverUrlInput, setServerUrlInput] = useState(getBackendUrl() || '');
+  const [showServerConfig, setShowServerConfig] = useState(isMissingBackendUrl());
+  const [serverSaveNotice, setServerSaveNotice] = useState('');
+
+  const handleSaveServer = (e) => {
+    e?.preventDefault();
+    if (!serverUrlInput.trim()) {
+      setBackendUrl('');
+      setCurrentBackend('');
+      setServerSaveNotice('Configuração redefinida para padrão local.');
+    } else {
+      const clean = serverUrlInput.trim().replace(/\/$/, '');
+      setBackendUrl(clean);
+      setCurrentBackend(clean);
+      setServerSaveNotice('URL do servidor salva com sucesso!');
+    }
+    setTimeout(() => setServerSaveNotice(''), 3000);
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,11 +94,54 @@ export default function Login() {
           </p>
         </div>
 
+        {/* Missing Backend Warning / Quick Connect Box */}
+        {isMissingBackendUrl() && !currentBackend && (
+          <div className="mb-5 p-3.5 bg-amber-950/80 border-2 border-amber-500 rounded-xl text-xs space-y-2 animate-fadeIn shadow-lg">
+            <div className="flex items-center gap-2 text-amber-300 font-bold uppercase tracking-wider font-gothic">
+              <Server className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Conectar ao Servidor Back-end (Render)</span>
+            </div>
+            <p className="text-amber-200 text-[11px] leading-relaxed">
+              O front-end na Vercel precisa da URL do seu servidor no Render para autenticar e rodar WebSockets:
+            </p>
+            <div className="flex gap-2 pt-1">
+              <input
+                type="url"
+                placeholder="https://seu-backend.onrender.com"
+                value={serverUrlInput}
+                onChange={e => setServerUrlInput(e.target.value)}
+                className="flex-1 bg-grim-950 border border-amber-500/60 focus:border-amber-400 rounded-lg px-3 py-1.5 text-xs text-white outline-none font-mono"
+              />
+              <button
+                type="button"
+                onClick={handleSaveServer}
+                className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-gothic-gold hover:from-amber-400 hover:to-amber-300 text-grim-950 font-gothic font-black text-xs uppercase rounded-lg shadow transition cursor-pointer"
+              >
+                Conectar
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Error Alert */}
         {error && (
           <div className="mb-5 p-3.5 bg-rose-950/80 border border-rose-600 rounded-xl text-rose-200 text-xs flex items-start gap-2.5 animate-fadeIn">
             <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-            <div className="flex-1 leading-relaxed">{error}</div>
+            <div className="flex-1 leading-relaxed">
+              {error}
+              {!currentBackend && (
+                <div className="mt-2 pt-2 border-t border-rose-800/60 flex items-center justify-between">
+                  <span className="text-[11px] text-rose-300">Dica: informe a URL do Render:</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowServerConfig(true)}
+                    className="text-[11px] text-amber-300 hover:text-white underline font-bold ml-2"
+                  >
+                    Configurar Servidor
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -84,6 +150,14 @@ export default function Login() {
           <div className="mb-5 p-3.5 bg-emerald-950/80 border border-emerald-500 rounded-xl text-emerald-200 text-xs flex items-start gap-2.5 animate-fadeIn">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
             <div className="flex-1 leading-relaxed">{successInfo}</div>
+          </div>
+        )}
+
+        {/* Server Save Notice */}
+        {serverSaveNotice && (
+          <div className="mb-4 p-2.5 bg-emerald-950/80 border border-emerald-500 rounded-xl text-emerald-200 text-xs flex items-center gap-2 animate-fadeIn">
+            <Check className="w-4 h-4 text-emerald-400" />
+            <span>{serverSaveNotice}</span>
           </div>
         )}
 
@@ -138,7 +212,7 @@ export default function Login() {
             className="w-full mt-2 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-gothic-gold via-amber-500 to-gothic-gold hover:from-amber-400 hover:to-gothic-gold text-grim-950 font-gothic font-black text-xs uppercase tracking-widest shadow-xl shadow-gothic-gold/20 active:scale-[0.98] transition duration-150 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
-              <span className="font-tech">CONSAGRANDO ACESSO...</span>
+              <span className="font-tech animate-pulse">SINTONIZANDO VOX IMPERIAL...</span>
             ) : (
               <>
                 <span>Entrar no Sanctum</span>
@@ -190,6 +264,53 @@ export default function Login() {
               🛡️ Jogador_2 (123456)
             </button>
           </div>
+        </div>
+
+        {/* Server Connection Status & Configuration Accordion */}
+        <div className="mt-4 pt-3 border-t border-grim-800/60">
+          <div className="flex items-center justify-between text-[10px] font-tech text-grim-500">
+            <div className="flex items-center gap-1.5 truncate max-w-[240px]">
+              <Server className="w-3 h-3 text-gothic-gold shrink-0" />
+              <span className="truncate">
+                {currentBackend ? `Servidor: ${currentBackend}` : 'Servidor: Padrão / Localhost'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowServerConfig(!showServerConfig)}
+              className="text-gothic-gold hover:text-amber-300 flex items-center gap-1 cursor-pointer font-bold ml-2 shrink-0"
+            >
+              <Settings className="w-3 h-3" />
+              <span>{showServerConfig ? 'Fechar' : 'Alterar'}</span>
+            </button>
+          </div>
+
+          {showServerConfig && (
+            <div className="mt-2.5 p-3 rounded-lg bg-grim-950 border border-grim-800 text-xs space-y-2 animate-fadeIn">
+              <label className="block text-[10px] uppercase font-tech text-grim-400 font-bold">
+                URL do Back-end no Render / Railway:
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  placeholder="https://seu-backend.onrender.com"
+                  value={serverUrlInput}
+                  onChange={e => setServerUrlInput(e.target.value)}
+                  className="flex-1 bg-grim-900 border border-grim-700 focus:border-gothic-gold rounded px-2.5 py-1 text-xs text-white outline-none font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveServer}
+                  className="px-3 py-1 bg-gothic-gold hover:bg-amber-400 text-grim-950 font-gothic font-bold text-xs uppercase rounded transition"
+                >
+                  Salvar
+                </button>
+              </div>
+              <p className="text-[10px] text-grim-500 leading-tight">
+                Cole a URL pública do seu serviço no Render (ex: <code className="text-amber-400">https://w40k-xxx.onrender.com</code>).
+              </p>
+            </div>
+          )}
         </div>
 
       </div>
