@@ -4,19 +4,44 @@
 // 2. Vercel build-time environment variable (VITE_API_URL)
 // 3. Runtime user override (localStorage 'wg_backend_url')
 
+function formatUrl(url) {
+  if (!url) return '';
+  let clean = url.trim().replace(/\/$/, '');
+
+  // Ignore placeholder examples
+  if (
+    clean.includes('seu-backend') ||
+    clean.includes('sua-url') ||
+    clean.includes('w40k-xxxx') ||
+    clean.includes('exemplo') ||
+    clean === 'https://' ||
+    clean === 'http://'
+  ) {
+    return '';
+  }
+
+  // Ensure protocol is present so browser does not treat it as relative path on Vercel
+  if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+    clean = `https://${clean}`;
+  }
+
+  return clean;
+}
+
 export function getBackendUrl() {
   if (typeof window !== 'undefined') {
     // 1. Check runtime localStorage override
     const saved = localStorage.getItem('wg_backend_url');
-    if (saved && saved.trim()) {
-      return saved.trim().replace(/\/$/, '');
+    const formattedSaved = formatUrl(saved);
+    if (formattedSaved) {
+      return formattedSaved;
     }
   }
 
   // 2. Check build-time Vite environment variable
-  const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && envUrl.trim() && !envUrl.includes('seu-backend')) {
-    return envUrl.trim().replace(/\/$/, '');
+  const envUrl = formatUrl(import.meta.env.VITE_API_URL);
+  if (envUrl) {
+    return envUrl;
   }
 
   // 3. In local development, return empty string so Vite proxy forwards '/api' to 127.0.0.1:3001
@@ -32,10 +57,11 @@ export function getBackendUrl() {
 
 export function setBackendUrl(url) {
   if (typeof window !== 'undefined') {
-    if (!url || !url.trim()) {
+    const formatted = formatUrl(url);
+    if (!formatted) {
       localStorage.removeItem('wg_backend_url');
     } else {
-      localStorage.setItem('wg_backend_url', url.trim().replace(/\/$/, ''));
+      localStorage.setItem('wg_backend_url', formatted);
     }
   }
 }
@@ -45,7 +71,7 @@ export function isMissingBackendUrl() {
   const host = window.location.hostname;
   // If running locally, Vite proxy works automatically
   if (host === 'localhost' || host === '127.0.0.1') return false;
-  // In production (Vercel, etc.), check if a backend URL is configured
+  // In production (Vercel, etc.), check if a valid backend URL is configured
   const current = getBackendUrl();
   return !current;
 }
@@ -54,10 +80,8 @@ export function getSocketUrl() {
   const backend = getBackendUrl();
   if (backend) return backend;
 
-  const envSocket = import.meta.env.VITE_SOCKET_URL;
-  if (envSocket && envSocket.trim() && !envSocket.includes('seu-backend')) {
-    return envSocket.trim().replace(/\/$/, '');
-  }
+  const envSocket = formatUrl(import.meta.env.VITE_SOCKET_URL);
+  if (envSocket) return envSocket;
 
   if (typeof window !== 'undefined' && window.location.port === '5173') {
     return 'http://127.0.0.1:3001';
